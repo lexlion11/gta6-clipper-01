@@ -1,0 +1,15 @@
+{
+  "name": "gta6-clipper-01",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "GTA 6 vertical clip for the make.fun gta6-clipper-01 bounty",
+  "license": "MIT",
+  "scripts": {
+    "build": "node main.ts",
+    "start": "node main.ts"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}

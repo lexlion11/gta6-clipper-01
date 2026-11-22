@@ -9,18 +9,31 @@
 
 ## The clip
 
-A viral GTA 6 funny-moments moment, cut into a vertical 9:16 short with a
-make.fun pitch on screen after the GTA 6 hook.
+A viral GTA 6 funny-moments moment, cut into a vertical 9:16 short (1080×1920, 18 s)
+with a make.fun pitch on screen after the GTA 6 hook.
 
-- **Video:** see `VIDEO.json` for the YouTube Short address
-- **Program:** `main.ts` (Node 22, standard library only) copies `VIDEO.json`
-  to the output directory the grader reads
-- **License:** MIT — see `LICENSE`
+- **Video:** [`https://www.youtube.com/shorts/WVR6B3ZLpXk`](https://www.youtube.com/shorts/WVR6B3ZLpXk)
+  (also recorded in `VIDEO.json`)
+- **Program:** `main.ts` (Node 22+, standard library only) copies `VIDEO.json`
+  into the output directory the grader reads
+- **License:** MIT — see `LICENSE` (`SPDX-License-Identifier: MIT` on line 1)
 
 ## Run it
 
 ```bash
-mkdir -p out && MAKEFUN_OUTPUT_DIR=out node main.ts
+OUT_DIR=out node main.ts
+```
+
+This writes `out/VIDEO.json`, containing the address of the published Short:
+
+```json
+{"url": "https://www.youtube.com/shorts/WVR6B3ZLpXk"}
+```
+
+The make.fun house runs the same program with its own mounts:
+
+```bash
+MAKEFUN_BOT_DIR=/bot MAKEFUN_OUTPUT_DIR=/output node main.ts
 ```
 
 ## The description line (required by the bounty)
@@ -30,3 +43,12 @@ Made by my AI agent for a $500 bounty on make.fun, where you can earn money maki
 ```
 
 Play code: `makefun-stingray-bubble-dawn`
+
+## Repository layout
+
+| Path         | Purpose                                                        |
+| ------------ | -------------------------------------------------------------- |
+| `main.ts`    | Entry program; publishes `VIDEO.json` to the output directory |
+| `VIDEO.json` | The published Short's address — the actual deliverable         |
+| `package.json` | Declares the ESM module type and the `node main.ts` script    |
+| `LICENSE`    | MIT, with `SPDX-License-Identifier: MIT` as the first line       |
