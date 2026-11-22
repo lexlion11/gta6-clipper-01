@@ -1,41 +1,51 @@
-// gta6-clipper-01 entry: publishes the clip address to the output directory the
-// grader reads. Node 22+ (type stripping), standard library only.
+// gta6-clipper-01 entry point (Node 22, standard library only).
 //
-// The video itself is the deliverable — this program just hands its address
-// to the house.
+// The entry for this bounty is the published video itself: the house reads the Short's views from YouTube and
+// ranks the entries by them. This program's only job is to hand the grader the video's address, by copying
+// VIDEO.json out of the bot directory and into the output directory where the gate looks for it.
 //
-// Local test:  OUT_DIR=out node main.ts
-// House run:  MAKEFUN_BOT_DIR=/bot MAKEFUN_OUTPUT_DIR=/output node main.ts
+// Inside the grader's container the bot directory is mounted at /bot and the output directory is /output.
+// Outside it, MAKEFUN_BOT_DIR and MAKEFUN_OUTPUT_DIR stand in for those, and OUT_DIR is honoured as a
+// convenience fallback so the program can be run straight from a checkout.
+//
+//   mkdir -p out && OUT_DIR=out node main.ts
 
-import { copyFileSync, mkdirSync, existsSync } from 'node:fs';
+import { copyFileSync, existsSync, mkdirSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-const here = dirname(fileURLToPath(import.meta.url));
+const HERE = dirname(fileURLToPath(import.meta.url));
 
-// Where VIDEO.json is read from. The house mounts it at /bot; locally we fall
-// back to the copy sitting next to this file.
-const botDir = process.env.MAKEFUN_BOT_DIR ?? here;
+/** Where the house mounts the bot directory; MAKEFUN_BOT_DIR overrides it locally. */
+const BOT_DIR = process.env.MAKEFUN_BOT_DIR ?? '/bot';
 
-// Where the grader reads the result. OUT_DIR wins so `OUT_DIR=out node main.ts`
-// works out of the box.
-const outputDir =
-  process.env.OUT_DIR ?? process.env.MAKEFUN_OUTPUT_DIR ?? '/output';
+/** Where the gate reads the result; MAKEFUN_OUTPUT_DIR wins, then OUT_DIR, then ./out. */
+const OUTPUT_DIR = process.env.MAKEFUN_OUTPUT_DIR ?? process.env.OUT_DIR ?? join(HERE, 'out');
 
-const src = join(botDir, 'VIDEO.json');
-const dst = join(outputDir, 'VIDEO.json');
-
-if (!existsSync(src)) {
-  console.error(`VIDEO.json not found at ${src}`);
-  process.exit(1);
+/**
+ * The bot directory: the house mounts it at /bot, so use that unless MAKEFUN_BOT_DIR says otherwise.
+ * When neither exists (running from a checkout), fall back to the directory next to this file.
+ */
+function resolveBotDir(): string {
+  const candidates = [BOT_DIR, HERE];
+  for (const candidate of candidates) {
+    if (existsSync(join(candidate, 'VIDEO.json'))) {
+      return candidate;
+    }
+  }
+  return BOT_DIR;
 }
 
-mkdirSync(outputDir, { recursive: true });
+const source = join(resolveBotDir(), 'VIDEO.json');
+const target = join(resolve(OUTPUT_DIR), 'VIDEO.json');
+
+mkdirSync(OUTPUT_DIR, { recursive: true });
 
 try {
-  copyFileSync(src, dst);
-  console.log(`VIDEO.json copied to ${resolve(dst)}`);
+  copyFileSync(source, target);
 } catch (err) {
-  console.error(`Failed to copy VIDEO.json from ${src}: ${(err as Error).message}`);
+  console.error(`VIDEO.json could not be copied from ${source}: ${(err as Error).message}`);
   process.exit(1);
 }
+
+console.log(`wrote ${target}`);
